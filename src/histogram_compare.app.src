@@ -1,0 +1,14 @@
+{application, histogram_compare,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {included_applications, [folsom]},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  exometer
+                 ]},
+  {mod, { histogram_compare_app, []}},
+  {env, []}
+ ]}.
