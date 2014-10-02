@@ -25,9 +25,9 @@ strip_newline(Value) ->
     re:replace(Value, "(^\\s+)|(\\s+$)", "", [global,{return,list}]).
 
 read_data_set({ok, Data}, File) ->
-    Value = string:to_float(strip_newline(Data)),
+    {Value, _} = string:to_float(strip_newline(Data)),
     ok = exometer:update(?TEST_METRIC_NAME, Value),
-    ok = folsom_metrics:notify(?TEST_METRIC_NAME, Value),
+    ok = folsom_metrics:notify({?TEST_METRIC_NAME, Value}),
     read_data_set(File);
 read_data_set(eof, _File) ->
     ok.
@@ -43,7 +43,7 @@ main(_Args) ->
     %% Load the data set
     {ok, File} = open_file("histogram_data_set.txt"),
     ok = read_data_set(File),
-    io:format("Exometer value for ~p is ~p.", [?TEST_METRIC_NAME, exometer:get_value(?TEST_METRIC_NAME)]),
-    io:format("Folsom_Metrics value for ~p is ~p.", [?TEST_METRIC_NAME, folsom_metrics:get_metric_value(?TEST_METRIC_NAME)]).
+    io:format("Folsom_Metrics value for ~p is ~p.\n", [?TEST_METRIC_NAME, folsom_metrics:get_histogram_statistics(?TEST_METRIC_NAME)]),
+    io:format("Exometer value for ~p is ~p.\n", [?TEST_METRIC_NAME, exometer:get_value(?TEST_METRIC_NAME)]).
 
     
