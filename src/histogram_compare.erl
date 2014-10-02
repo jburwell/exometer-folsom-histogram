@@ -5,13 +5,14 @@
 -define(TEST_METRIC_NAME, "test_histogram").
 
 start_exometer_with_histogram(Name) ->
-    application:start(exometer),
-    exometer_admin:preset_defaults(),
-    exometer:new(Name, histogram).
+    %% ok = application:start(exometer),
+    %% ok = exometer_admin:preset_defaults(),
+    ok = exometer:start(),
+    ok = exometer:new(Name, histogram).
 
 start_folsom_metrics_with_histogram(Name) ->
-    application:start(folsom),
-    folsom_metrics:new_histogram({?MODULE, Name}).
+    ok = application:start(folsom),
+    ok = folsom_metrics:new_histogram({?MODULE, Name}).
 
 open_file({ok, File}) ->
     {ok, File};
@@ -22,8 +23,8 @@ open_file(Filename) ->
 
 read_data_set({ok, Data}, File) ->
     Value = list_to_integer(Data),
-    exometer:update(?TEST_METRIC_NAME, Value),
-    folsom_metrics:notify(?TEST_METRIC_NAME, Value),
+    ok = exometer:update(?TEST_METRIC_NAME, Value),
+    ok = folsom_metrics:notify(?TEST_METRIC_NAME, Value),
     read_data_set(File);
 read_data_set(eof, _File) ->
     ok.

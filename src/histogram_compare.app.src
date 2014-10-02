@@ -9,6 +9,6 @@
                   stdlib,
                   exometer
                  ]},
-  {mod, { histogram_compare_app, []}},
+  {mod, { histogram_compare, []}},
   {env, []}
  ]}.
