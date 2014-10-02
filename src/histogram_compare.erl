@@ -12,7 +12,7 @@ start_exometer_with_histogram(Name) ->
 
 start_folsom_metrics_with_histogram(Name) ->
     ok = application:start(folsom),
-    ok = folsom_metrics:new_histogram({?MODULE, Name}).
+    ok = folsom_metrics:new_histogram(Name).
 
 open_file({ok, File}) ->
     {ok, File};
@@ -21,8 +21,11 @@ open_file({error, Reason}) ->
 open_file(Filename) ->
     open_file(file:open(Filename, [read])).
 
+strip_newline(Value) ->
+    re:replace(Value, "(^\\s+)|(\\s+$)", "", [global,{return,list}]).
+
 read_data_set({ok, Data}, File) ->
-    Value = list_to_integer(Data),
+    Value = string:to_float(strip_newline(Data)),
     ok = exometer:update(?TEST_METRIC_NAME, Value),
     ok = folsom_metrics:notify(?TEST_METRIC_NAME, Value),
     read_data_set(File);
