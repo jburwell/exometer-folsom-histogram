@@ -10,5 +10,15 @@
                   exometer
                  ]},
   {mod, { histogram_compare, []}},
-  {env, []}
+  {env, [
+        %% Exometer defaults
+        {exometer_defaults,
+          [
+          {['_'], histogram, [{options,
+                                [{histogram_module, exometer_slot_slide},
+                                {keep_high, 500}, {truncate, false}]}
+                            ]}
+          ]}
+
+  ]}
  ]}.

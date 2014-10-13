@@ -2,6 +2,7 @@
 
 -export([main/1]).
 
+-define(RUN_LENGTH, 3600000).
 -define(TEST_METRIC_NAME, "test_histogram").
 
 start_exometer_with_histogram(Name) ->
@@ -24,16 +25,26 @@ open_file(Filename) ->
 strip_newline(Value) ->
     re:replace(Value, "(^\\s+)|(\\s+$)", "", [global,{return,list}]).
 
-read_data_set({ok, Data}, File) ->
+read_data_set(File) ->
+    read_data_set(File, []).
+
+read_data_set({ok, Data}, File, DataSet) ->
     {Value, _} = string:to_float(strip_newline(Data)),
+    read_data_set(File, lists:append(DataSet, [ Value ]));
+read_data_set(eof, _File, DataSet) ->
+    {ok, DataSet}.
+
+read_data_set(File, DataSet) ->
+    read_data_set(file:read_line(File), File, DataSet).
+
+playback_data_set(DataSet, _Rate) when DataSet == [] ->
+    ok;
+playback_data_set(DataSet, Rate) ->
+    [ Value | NewDataSet ] = DataSet,
     ok = exometer:update(?TEST_METRIC_NAME, Value),
     ok = folsom_metrics:notify({?TEST_METRIC_NAME, Value}),
-    read_data_set(File);
-read_data_set(eof, _File) ->
-    ok.
-
-read_data_set(File) ->
-    read_data_set(file:read_line(File), File).
+    timer:sleep(Rate),
+    playback_data_set(NewDataSet, Rate).
 
 main(_Args) ->
     %% Spin up the metrics subsystems ...
@@ -42,7 +53,11 @@ main(_Args) ->
     
     %% Load the data set
     {ok, File} = open_file("histogram_data_set.txt"),
-    ok = read_data_set(File),
+    {ok, DataSet} = read_data_set(File),
+    
+    Rate = round(?RUN_LENGTH / length(DataSet)),
+    io:format("Playing back ~p records at a rate of ~p.\n", [length(DataSet), Rate]),
+    ok = playback_data_set(DataSet, Rate),
     io:format("Folsom_Metrics value for ~p is ~p.\n", [?TEST_METRIC_NAME, folsom_metrics:get_histogram_statistics(?TEST_METRIC_NAME)]),
     io:format("Exometer value for ~p is ~p.\n", [?TEST_METRIC_NAME, exometer:get_value(?TEST_METRIC_NAME)]).
 
