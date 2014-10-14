@@ -6,14 +6,12 @@
 -define(TEST_METRIC_NAME, "test_histogram").
 
 start_exometer_with_histogram(Name) ->
-    %% ok = application:start(exometer),
-    %% ok = exometer_admin:preset_defaults(),
     ok = exometer:start(),
     ok = exometer:new(Name, histogram).
 
 start_folsom_metrics_with_histogram(Name) ->
     ok = application:start(folsom),
-    ok = folsom_metrics:new_histogram(Name).
+    ok = folsom_metrics:new_histogram(Name, slide_uniform, {60, 1028}).
 
 open_file({ok, File}) ->
     {ok, File};
@@ -47,6 +45,9 @@ playback_data_set(DataSet, Rate) ->
     playback_data_set(NewDataSet, Rate).
 
 main(_Args) ->
+    %% Initialize the test harness ...
+    ok = application:load(histogram_compare),
+
     %% Spin up the metrics subsystems ...
     ok = start_folsom_metrics_with_histogram(?TEST_METRIC_NAME),
     ok = start_exometer_with_histogram(?TEST_METRIC_NAME),
