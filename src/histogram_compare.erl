@@ -11,6 +11,8 @@ start_exometer_with_histogram(Name) ->
 
 start_folsom_metrics_with_histogram(Name) ->
     ok = application:start(folsom),
+    %% This histogram configuration matches the configuration in riak_kv_stat
+    %% https://github.com/basho/riak_kv/blob/develop/src/riak_kv_stat.erl#L525
     ok = folsom_metrics:new_histogram(Name, slide_uniform, {60, 1028}).
 
 open_file({ok, File}) ->
@@ -57,7 +59,7 @@ main(_Args) ->
     {ok, DataSet} = read_data_set(File),
     
     Rate = round(?RUN_LENGTH / length(DataSet)),
-    io:format("Playing back ~p records at a rate of ~p.\n", [length(DataSet), Rate]),
+    io:format("Playing back ~p records at a rate of 1 record every ~p ms.\n", [length(DataSet), Rate]),
     ok = playback_data_set(DataSet, Rate),
     io:format("Folsom_Metrics value for ~p is ~p.\n", [?TEST_METRIC_NAME, folsom_metrics:get_histogram_statistics(?TEST_METRIC_NAME)]),
     io:format("Exometer value for ~p is ~p.\n", [?TEST_METRIC_NAME, exometer:get_value(?TEST_METRIC_NAME)]).
